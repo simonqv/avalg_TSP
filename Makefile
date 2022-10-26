@@ -11,11 +11,11 @@ all: tsp
 
 # Run test with valgrind to detect memory leaks
 test: tsp
-	valgrind ./tsp
+	valgrind ./tsp < test1.in
 
 # Run
 run: tsp
-	./tsp
+	./tsp < test1.in
 
 # Object files
 tsp: $(SRC_FILES) $(HEAD_FILES)
