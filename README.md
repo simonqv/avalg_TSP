@@ -1,3 +1,7 @@
+![canvas](https://canvas.kth.se/courses/35515/pages/project-tsp)
+
+![kattis](https://kth.kattis.com/problems/tsp)
+
 ## README
 
 ### First plan:
