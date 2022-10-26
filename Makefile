@@ -1,32 +1,26 @@
 CXX=g++
-CFLAGS=-Wall -g -std=c++17
-LFLAGS=-lm -lpthread
+CFLAGS=-Wall -g -O2 -std=gnu++17 -static -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 
 .PHONY: tests clean
+
+SRC_FILES=$(wildcard *.cpp)
+HEAD_FILES=$(wildcard *.hpp)
 
 # Compile all
 all: tsp
 
-# Run tests
-tests: tsp
+# Run test with valgrind to detect memory leaks
+test: tsp
 	valgrind ./tsp
 
 # Run
 run: tsp
 	./tsp
 
-# Executables
-tsp: tsp.o
-	$(CXX) -o $@ $^ $(CFLAGS) $(LFLAGS)
-
 # Object files
-%.o: %.cpp %.h
-	$(CXX) -c -o $@ $< $(CFLAGS)
-
-%.o: %.cpp
-	$(CXX) -c -o $@ $< $(CFLAGS)
+tsp: $(SRC_FILES) $(HEAD_FILES)
+	$(CXX) -o $@ $< $(CFLAGS)
 
 # Cleaning
 clean:
-	find . -name '*.o' | xargs -I % rm %
-	find . -name 'tsp' | xargs -I % rm %
+	rm tsp
