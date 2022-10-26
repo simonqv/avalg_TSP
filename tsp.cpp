@@ -47,6 +47,7 @@ vector<vector<float>> euclideanDistance(vector<point> points) {
 	return out;
 }
 
+// TODO: there are may optimizations posible
 vector<size_t> solve(vector<point> points) {
 	auto dists = euclideanDistance(points);
 	/*
