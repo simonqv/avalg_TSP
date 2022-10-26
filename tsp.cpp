@@ -30,14 +30,14 @@ vector<point> parseInput() {
 
 // TODO: optimization, do a triangular matrix
 vector<vector<float>> euclideanDistance(vector<point> points) {
-	size_t n = points.size();
+	int n = points.size();
 	vector<vector<float>> out(n);
-	for (size_t i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		out[i] = vector<float>(n);
 	}
 
-	for (size_t a = 0; a < n; a++) {
-		for (size_t b = 0; b < n; b++) {
+	for (int a = 0; a < n; a++) {
+		for (int b = 0; b < n; b++) {
 			out[a][b] = pow(points[a].x - points[b].x, 2) + pow(points[a].y - points[b].y, 2);
 			if (out[a][b] <= 0)
 				out[a][b] = numeric_limits<float>::max();
@@ -48,7 +48,7 @@ vector<vector<float>> euclideanDistance(vector<point> points) {
 }
 
 // TODO: there are may optimizations posible
-vector<size_t> solve(vector<point> points) {
+vector<int> solve(vector<point> points) {
 	auto dists = euclideanDistance(points);
 	/*
 	for (auto dv : dists) {
@@ -58,18 +58,18 @@ vector<size_t> solve(vector<point> points) {
 	}
 	*/
 
-	vector<size_t> path = vector<size_t>();
+	vector<int> path = vector<int>();
 	path.push_back(0);
 
 	while (path.size() < dists.size())  {
-		size_t from = path.back();
+		int from = path.back();
 
-		for (size_t i = 0; i < dists.size(); i++) {
+		for (int i = 0; i < (int) dists.size(); i++) {
 			dists[i][from] = numeric_limits<float>::max();
 		}
 
 		vector<float>::iterator result = min_element(dists[from].begin(), dists[from].end());
-		size_t to = distance(dists[from].begin(), result);
+		int to = distance(dists[from].begin(), result);
 		
 
 		path.push_back(to);
@@ -78,7 +78,7 @@ vector<size_t> solve(vector<point> points) {
 	return path;
 }
 
-void printPath(vector<size_t> path) { 
+void printPath(vector<int> path) { 
 	for (auto p : path)
 		cout << p << endl;
 }
