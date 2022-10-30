@@ -4,6 +4,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <chrono>
 
 
 using namespace std;
@@ -91,10 +92,10 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
 	srand(0);  // Seed the random nubmer generator
-	int n = 1000;
+	auto start = chrono::high_resolution_clock::now();
 	int pathLen = path.size();
 	
-	while (n--) {
+	while (chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count() < 1950) {
 		int a = rand() % pathLen;
 		int an = a >= pathLen-1 ? 0 : a+1;
 		int b = rand() % pathLen;
