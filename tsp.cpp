@@ -20,7 +20,7 @@ void printPath(vector<int> path) {
 }
 
 void printPathLen(vector<int> path, vector<vector<float>> distMatrix) {
-	float l = 0;
+	float l = distMatrix[path.back()][path.front()];
 	for (size_t i=0; i < path.size()-1; i++) {
 		l += distMatrix[path[i]][path[i+1]];
 	}
@@ -104,10 +104,10 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		int a2 = path[an];
 		int b1 = path[b];
 		int b2 = path[bn];
-		float aDist = an == 0 ? 0 : dist[a1][a2];
-		float bDist = bn == 0 ? 0 : dist[b1][b2];
-		float swDist1 = bn == 0 ? 0 : dist[a1][b1];
-		float swDist2 = an == 0 ? 0 : dist[a2][b2];
+		float aDist = dist[a1][a2];
+		float bDist = dist[b1][b2];
+		float swDist1 = dist[a1][b1];
+		float swDist2 = dist[a2][b2];
 
 		float orgDist = aDist + bDist;
 		float swDist = swDist1 + swDist2;
