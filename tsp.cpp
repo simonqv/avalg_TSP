@@ -7,7 +7,7 @@
 #include <chrono>
 
 #define RANDOM_SEED 0
-#define CUTOFF_MS 1980
+#define CUTOFF_MS 20
 
 using namespace std;
 using namespace chrono;
@@ -25,7 +25,7 @@ void printPath(vector<int> path) {
 void printPathLen(vector<int> path, vector<vector<float>> distMatrix) {
 	float l = distMatrix[path.back()][path.front()];
 	for (size_t i=0; i < path.size()-1; i++) {
-		l += distMatrix[path[i]][path[i+1]];
+		l += distMatrix[path.at(i)][path[i+1]];
 	}
 	cout << "path len: " << l << endl;
 }
@@ -47,7 +47,7 @@ vector<point> parseInput() {
 
 	for (int i = 0; i < n; i++) {
 		cin >> x >> y;
-		out[i] = {x, y};
+		out.at(i) = {x, y};
 	}
 
 	return out;
@@ -58,7 +58,7 @@ vector<vector<float>> euclideanDistance(vector<point> points) {
 	int n = points.size();
 	vector<vector<float>> out(n);
 	for (int i = 0; i < n; i++) {
-		out[i] = vector<float>(n);
+		out.at(i) = vector<float>(n);
 	}
 
 	for (int a = 0; a < n; a++) {
@@ -80,7 +80,7 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 		int from = path.back();
 
 		for (int i = 0; i < (int) distMatrix.size(); i++) {
-			distMatrix[i][from] = numeric_limits<float>::max();
+			distMatrix.at(i)[from] = numeric_limits<float>::max();
 		}
 
 		vector<float>::iterator result = min_element(distMatrix[from].begin(), distMatrix[from].end());
@@ -106,21 +106,21 @@ inline void do2opt(int a, int an, int b, int bn, vector<int>& path, vector<int>&
 	int i = 0;
 	int j = m2n != 0 ? 0 : 1;
 	while (j<=m1) {
-		tmpPath[i] = path[j];
+		tmpPath.at(i) = path.at(j);
 		// cout << i << " 1= " << j << endl;
 		i++; j++;
 	}
 
 	j = m2; 
 	while (m1n<=j) {
-		tmpPath[i] = path[j];
+		tmpPath.at(i) = path.at(j);
 		// cout << i << " 2= " << j << endl;
 		i++; j--;
 	}
 
 	j = m2n;
 	while (j<pathLen && i<pathLen) {
-		tmpPath[i] = path[j];
+		tmpPath.at(i) = path.at(j);
 		// cout << i << " 3= " << j << endl;
 		i++; j++;
 	}
@@ -161,7 +161,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		int64_t prob = ((100*duration) / CUTOFF_MS);
 		bool doBadStep = r > pow(prob, 4);
 		*/
-		if (orgDist > swDist /* || doBadStep */) {
+		if (true /* || doBadStep */) {
 			// cout << "shorter path found, switch " << a << " and " << b << endl;
 			do2opt(a, an, b, bn, path, tmpPath);
 			// printPath(path);
