@@ -96,7 +96,6 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 inline void do2opt(int a, int an, int b, int bn, vector<int>& path, vector<int>& tmpPath) {
 	int pathLen = (int)path.size();
 
-	auto path_ = tmpPath;
 	int m1 = a < b ? a : b;
 	int m1n = a < b ? an : bn;
 	int m2 = a >= b ? a : b;
