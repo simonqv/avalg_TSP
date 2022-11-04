@@ -5,7 +5,9 @@
 #include <limits>
 #include <algorithm>
 #include <chrono>
+#include <random>
 
+#define RANDOM_SEED 0
 
 using namespace std;
 
@@ -91,11 +93,14 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 }
 
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
-	srand(0);  // Seed the random nubmer generator
+	srand(RANDOM_SEED); // Seed the random nubmer generator
 	auto start = chrono::high_resolution_clock::now();
 	int pathLen = path.size();
-	
-	while (chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count() < 1950) {
+
+	long unsigned int countLoops = 0;
+	long unsigned int countChanges = 0;
+
+	while (chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count() < 1980) {
 		int a = rand() % pathLen;
 		int an = a >= pathLen-1 ? 0 : a+1;
 		int b = rand() % pathLen;
@@ -149,8 +154,13 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 			// printPath(path);
 			// printPathLen(path, dist);
 			// cout << "--" << endl;
+			countChanges++;
 		}
+
+		countLoops++;
 	}
+
+	cerr << "loops: " << countLoops << "\tchanges: " << countChanges << endl;
 
 	return path;
 }
