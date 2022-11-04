@@ -106,9 +106,9 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 
 	while (duration < CUTOFF_MS) {
 		int a = rand() % pathLen;
-		int an = a+1 % pathLen;
+		int an = a >= pathLen-1 ? 0 : a+1;
 		int b = rand() % pathLen;
-		int bn = b+1 % pathLen;
+		int bn = b >= pathLen-1 ? 0 : b+1;
 		int a1 = path[a];
 		int a2 = path[an];
 		int b1 = path[b];
