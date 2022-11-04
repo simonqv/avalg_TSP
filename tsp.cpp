@@ -8,8 +8,10 @@
 #include <random>
 
 #define RANDOM_SEED 0
+#define CUTOFF_MS 1980
 
 using namespace std;
+using namespace chrono;
 
 typedef struct {
 	float x;
@@ -94,17 +96,19 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
 	srand(RANDOM_SEED); // Seed the random nubmer generator
-	auto start = chrono::high_resolution_clock::now();
+	auto start = high_resolution_clock::now();
+	auto duration = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
 	int pathLen = path.size();
 
 	long unsigned int countLoops = 0;
 	long unsigned int countChanges = 0;
+	long unsigned int countBadSteps = 0;
 
-	while (chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start).count() < 1980) {
+	while (duration < CUTOFF_MS) {
 		int a = rand() % pathLen;
-		int an = a >= pathLen-1 ? 0 : a+1;
+		int an = a+1 % pathLen;
 		int b = rand() % pathLen;
-		int bn = b >= pathLen-1 ? 0 : b+1;
+		int bn = b+1 % pathLen;
 		int a1 = path[a];
 		int a2 = path[an];
 		int b1 = path[b];
@@ -117,7 +121,10 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		float orgDist = aDist + bDist;
 		float swDist = swDist1 + swDist2;
 
-		if (orgDist > swDist) {
+		float r = ((float)(rand() % CUTOFF_MS)) / (float)CUTOFF_MS;
+		float prob = 1 - (((float)duration) / (float)CUTOFF_MS);
+		bool doBadStep = r < pow(prob, 4);
+		if (orgDist > swDist || doBadStep) {
 			// cout << "shorter path found, switch " << a << " and " << b << endl;
 
 			auto path_ = vector<int>(pathLen);
@@ -155,12 +162,16 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 			// printPathLen(path, dist);
 			// cout << "--" << endl;
 			countChanges++;
+			if (doBadStep) {
+				countBadSteps++;
+			}
 		}
 
 		countLoops++;
+		duration = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
 	}
 
-	cerr << "loops: " << countLoops << "\tchanges: " << countChanges << endl;
+	cerr << "loops: " << countLoops << "\tchanges: " << countChanges << "\tbad steps: " << countBadSteps << endl;
 
 	return path;
 }
