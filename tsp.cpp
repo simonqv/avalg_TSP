@@ -7,7 +7,7 @@
 #include <chrono>
 
 #define RANDOM_SEED 0
-#define CUTOFF_MS 20
+#define CUTOFF_MS 1980
 
 using namespace std;
 using namespace chrono;
@@ -93,39 +93,10 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 	return path;
 }
 
-inline void do2opt(int a, int an, int b, int bn, vector<int>& path, vector<int>& tmpPath) {
-	int pathLen = (int)path.size();
-
+inline void do2opt(int a, int b, vector<int>& path) {
 	int m1 = a < b ? a : b;
-	int m1n = a < b ? an : bn;
 	int m2 = a >= b ? a : b;
-	int m2n = a >= b ? an : bn;
-
-	// printf("%d %d %d %d\n", m1, m1n, m2, m2n);
-
-	int i = 0;
-	int j = m2n != 0 ? 0 : 1;
-	while (j<=m1) {
-		tmpPath.at(i) = path.at(j);
-		// cout << i << " 1= " << j << endl;
-		i++; j++;
-	}
-
-	j = m2; 
-	while (m1n<=j) {
-		tmpPath.at(i) = path.at(j);
-		// cout << i << " 2= " << j << endl;
-		i++; j--;
-	}
-
-	j = m2n;
-	while (j<pathLen && i<pathLen) {
-		tmpPath.at(i) = path.at(j);
-		// cout << i << " 3= " << j << endl;
-		i++; j++;
-	}
-
-	path = tmpPath;
+	reverse(path.begin()+m1+1, path.begin()+m2+1);
 }
 
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
@@ -133,7 +104,6 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 	auto start = high_resolution_clock::now();
 	auto duration = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
 	int pathLen = path.size();
-	auto tmpPath = vector<int>(path.size());
 
 	long unsigned int countLoops = 0;
 	long unsigned int countChanges = 0;
@@ -156,23 +126,22 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		float orgDist = aDist + bDist;
 		float swDist = swDist1 + swDist2;
 
-		/*
 		int64_t r = (100*(rand() % CUTOFF_MS)) / CUTOFF_MS;
 		int64_t prob = ((100*duration) / CUTOFF_MS);
 		bool doBadStep = r > pow(prob, 4);
-		*/
-		if (true /* || doBadStep */) {
+		if (orgDist > swDist || doBadStep) {
 			// cout << "shorter path found, switch " << a << " and " << b << endl;
-			do2opt(a, an, b, bn, path, tmpPath);
+			do2opt(a, b, path);
 			// printPath(path);
 			// printPathLen(path, dist);
 			// cout << "--" << endl;
 			countChanges++;
-			/*
 			if (doBadStep) {
 				countBadSteps++;
+				cerr << "bad step at " << duration << endl;
+			} else {
+				cerr << "good step at " << duration << endl;
 			}
-			*/
 		}
 
 		countLoops++;
