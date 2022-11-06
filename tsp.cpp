@@ -53,21 +53,23 @@ vector<point> parseInput() {
 	return out;
 }
 
-// TODO: optimization, do a triangular matrix? Might not be worth it
 vector<vector<float>> euclideanDistance(vector<point> points) {
 	int n = points.size();
 	vector<vector<float>> out(n);
 	for (int i = 0; i < n; i++) {
-		out.at(i) = vector<float>(n);
+		out[i] = vector<float>(n);
 	}
 
 	for (int a = 0; a < n; a++) {
-		for (int b = 0; b < n; b++) {
-			out[a][b] = pow(points[a].x - points[b].x, 2) + pow(points[a].y - points[b].y, 2);
-			if (out[a][b] <= 0)
-				out[a][b] = numeric_limits<float>::max();
+		for (int b = a+1; b < n; b++) {
+			float dist = pow(points[a].x - points[b].x, 2) + pow(points[a].y - points[b].y, 2);
+			out[a][b] = dist;
+			out[b][a] = dist;
 		}
 	}
+
+	for (int a = 0; a < n; a++)
+		out[a][a] = numeric_limits<float>::max();
 
 	return out;
 }
@@ -80,7 +82,7 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 		int from = path.back();
 
 		for (int i = 0; i < (int) distMatrix.size(); i++) {
-			distMatrix.at(i)[from] = numeric_limits<float>::max();
+			distMatrix[i][from] = numeric_limits<float>::max();
 		}
 
 		vector<float>::iterator result = min_element(distMatrix[from].begin(), distMatrix[from].end());
@@ -106,8 +108,6 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 	int pathLen = path.size();
 
 	long unsigned int countLoops = 0;
-	long unsigned int countChanges = 0;
-	long unsigned int countBadSteps = 0;
 
 	while (duration < CUTOFF_MS) {
 		int a = rand() % pathLen;
@@ -126,36 +126,23 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		float orgDist = aDist + bDist;
 		float swDist = swDist1 + swDist2;
 
-		int64_t r = (100*(rand() % CUTOFF_MS)) / CUTOFF_MS;
-		int64_t prob = ((100*duration) / CUTOFF_MS);
-		bool doBadStep = r > pow(prob, 4);
+		bool doBadStep = (rand() % CUTOFF_MS) > (duration + CUTOFF_MS);
 		if (orgDist > swDist || doBadStep) {
-			// cout << "shorter path found, switch " << a << " and " << b << endl;
 			do2opt(a, b, path);
-			// printPath(path);
-			// printPathLen(path, dist);
-			// cout << "--" << endl;
-			countChanges++;
-			if (doBadStep) {
-				countBadSteps++;
-				cerr << "bad step at " << duration << endl;
-			} else {
-				cerr << "good step at " << duration << endl;
-			}
 		}
 
-		countLoops++;
 		duration = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
+		countLoops++;
 	}
 
-	cerr << "loops: " << countLoops << "\tchanges: " << countChanges << "\tbad steps: " << countBadSteps << endl;
+	cerr << "loops: " << countLoops << endl;
 
 	return path;
 }
 
 // TODO: there are may optimizations posible
 vector<int> solve(vector<point> points) {
-	auto distMatrix  = euclideanDistance(points);
+	auto distMatrix = euclideanDistance(points);
 	auto path = greedyPath(distMatrix);
 	// printPath(path);
 	// printPathLen(path, distMatrix);
