@@ -7,7 +7,7 @@
 #include <chrono>
 
 #define RANDOM_SEED 0
-#define CUTOFF_MS 1980
+#define CUTOFF_US 1980000
 
 using namespace std;
 using namespace chrono;
@@ -28,6 +28,14 @@ void printPathLen(vector<int> path, vector<vector<float>> distMatrix) {
 		l += distMatrix[path.at(i)][path[i+1]];
 	}
 	cout << "path len: " << l << endl;
+}
+
+float calcPathDist(const vector<int>& path, const vector<vector<float>>& distMatrix) {
+	float l = distMatrix[path.back()][path.front()];
+	for (size_t i=0; i < path.size()-1; i++) {
+		l += distMatrix[path[i]][path[i+1]];
+	}
+	return l;
 }
 
 void printMatrix(vector<vector<float>> m) {
@@ -104,12 +112,17 @@ inline void do2opt(int a, int b, vector<int>& path) {
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
 	srand(RANDOM_SEED); // Seed the random nubmer generator
 	auto start = high_resolution_clock::now();
-	auto duration = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
+	int64_t duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
 	int pathLen = path.size();
+	auto bestPath = path;
+	float bestPathDist = calcPathDist(path, dist);
+	float diff = 0;
 
 	long unsigned int countLoops = 0;
+	long unsigned int countResets = 0;
+	long unsigned int countBadSteps = 0;
 
-	while (duration < CUTOFF_MS) {
+	while (duration < CUTOFF_US) {
 		int a = rand() % pathLen;
 		int an = (a+1) % pathLen;
 		int b = rand() % pathLen;
@@ -126,18 +139,37 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		float orgDist = aDist + bDist;
 		float swDist = swDist1 + swDist2;
 
-		bool doBadStep = (rand() % CUTOFF_MS) > (duration + CUTOFF_MS);
-		if (orgDist > swDist || doBadStep) {
+		if (orgDist > swDist) {
 			do2opt(a, b, path);
+			diff -= orgDist - swDist;
+
+			if (diff < 0) {
+				bestPath = path;
+				bestPathDist = calcPathDist(path, dist);
+				diff = 0;
+			}
+		} else {
+			bool doBadStep = (rand() % CUTOFF_US) > (duration + (CUTOFF_US/2));
+			if (doBadStep) {
+				do2opt(a, b, path);
+				diff -= orgDist - swDist;
+				countBadSteps++;
+			}
+			// Reset if very bad
+			if (diff > 0.1*bestPathDist) {
+				path = bestPath;
+				diff = 0;
+				countResets++;
+			}
 		}
 
-		duration = duration_cast<milliseconds>(high_resolution_clock::now() - start).count();
+		duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
 		countLoops++;
 	}
 
-	cerr << "loops: " << countLoops << endl;
+	cerr << "loops: " << countLoops << "\tbad steps: " << countBadSteps << "\tresets: " << countResets << endl;
 
-	return path;
+	return bestPath;
 }
 
 // TODO: there are may optimizations posible

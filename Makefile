@@ -1,7 +1,7 @@
 CXX=g++
 CFLAGS=-Wall -g -O2 -std=gnu++17 -static -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 
-.PHONY: tests clean
+.PHONY: test clean val
 
 SRC_FILES=$(wildcard *.cpp)
 HEAD_FILES=$(wildcard *.hpp)
@@ -10,8 +10,11 @@ HEAD_FILES=$(wildcard *.hpp)
 all: tsp
 
 # Run test with valgrind to detect memory leaks
-test: tsp
+val: tsp
 	valgrind ./tsp < test1.in
+
+test: tsp
+	time ./tsp < test2.in 1> /dev/null
 
 # Run
 run: tsp
