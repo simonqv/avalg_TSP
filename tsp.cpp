@@ -156,7 +156,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 				countBadSteps++;
 			}
 			// Reset if very bad
-			if (diff > 0.1*bestPathDist) {
+			if (diff > 0.2*bestPathDist) {
 				path = bestPath;
 				diff = 0;
 				countResets++;
