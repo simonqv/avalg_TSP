@@ -112,7 +112,7 @@ inline void do2opt(int a, int b, vector<int>& path) {
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
 	srand(RANDOM_SEED); // Seed the random number generator
 	auto start = high_resolution_clock::now();
-	int64_t duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
+	int duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
 	int pathLen = path.size();
 	auto bestPath = path;
 	float bestPathDist = calcPathDist(path, dist);
@@ -153,7 +153,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 				diff = 0;
 			}
 		} else {
-			bool doBadStep = (rand() % CUTOFF_US) > (duration + (CUTOFF_US/2));
+			bool doBadStep = (rand() % CUTOFF_US) > (duration + (3*CUTOFF_US/4));
 			if (doBadStep) {
 				do2opt(a, b, path);
 				diff -= orgDist - swDist;
@@ -172,6 +172,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 	}
 
 	cerr << "loops: " << countLoops << "\tbad steps: " << countBadSteps << "\tresets: " << countResets << endl;
+	cerr << "Path dist: " << bestPathDist << endl;
 
 	return bestPath;
 }
