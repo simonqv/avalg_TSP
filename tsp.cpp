@@ -153,7 +153,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 				diff = 0;
 			}
 		} else {
-			bool doBadStep = (rand() % CUTOFF_US) > (duration + (3*CUTOFF_US/4));
+			bool doBadStep = (rand() % CUTOFF_US) > (duration + CUTOFF_US/2);
 			if (doBadStep) {
 				do2opt(a, b, path);
 				diff -= orgDist - swDist;
