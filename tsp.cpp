@@ -70,7 +70,7 @@ vector<vector<float>> euclideanDistance(vector<point> points) {
 
 	for (int a = 0; a < n; a++) {
 		for (int b = a+1; b < n; b++) {
-			float dist = pow(points[a].x - points[b].x, 2) + pow(points[a].y - points[b].y, 2);
+			float dist = round(pow(points[a].x - points[b].x, 2) + pow(points[a].y - points[b].y, 2));
 			out[a][b] = dist;
 			out[b][a] = dist;
 		}
