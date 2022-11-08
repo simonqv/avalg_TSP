@@ -93,7 +93,7 @@ vector<int> greedyPath(vector<vector<float>> distMatrix) {
 			distMatrix[i][from] = numeric_limits<float>::max();
 		}
 
-		vector<float>::iterator result = min_element(distMatrix[from].begin(), distMatrix[from].end());
+		auto result = min_element(distMatrix[from].begin(), distMatrix[from].end());
 		int to = distance(distMatrix[from].begin(), result);
 		
 
@@ -110,7 +110,7 @@ inline void do2opt(int a, int b, vector<int>& path) {
 }
 
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
-	srand(RANDOM_SEED); // Seed the random nubmer generator
+	srand(RANDOM_SEED); // Seed the random number generator
 	auto start = high_resolution_clock::now();
 	int64_t duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
 	int pathLen = path.size();
@@ -123,14 +123,18 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 	long unsigned int countBadSteps = 0;
 
 	while (duration < CUTOFF_US) {
-		int a = rand() % pathLen;
+		// First edge
+        int a = rand() % pathLen;
 		int an = (a+1) % pathLen;
+        // Second edge
 		int b = rand() % pathLen;
 		int bn = (b+1) % pathLen;
+        // Nodes of edges
 		int a1 = path[a];
 		int a2 = path[an];
 		int b1 = path[b];
 		int b2 = path[bn];
+
 		float aDist = dist[a1][a2];
 		float bDist = dist[b1][b2];
 		float swDist1 = dist[a1][b1];

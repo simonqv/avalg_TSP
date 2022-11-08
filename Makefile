@@ -1,5 +1,5 @@
 CXX=g++
-CFLAGS=-Wall -g -O2 -std=gnu++17 -static -lrt -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
+CFLAGS=-Wall -g -O2 -std=gnu++17
 
 .PHONY: test clean val
 
