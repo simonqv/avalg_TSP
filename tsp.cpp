@@ -120,6 +120,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 
 	long unsigned int countLoops = 0;
 	long unsigned int countResets = 0;
+	long unsigned int countGoodSteps = 0;
 	long unsigned int countBadSteps = 0;
 
 	while (duration < CUTOFF_US) {
@@ -152,6 +153,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 				bestPathDist = calcPathDist(path, dist);
 				diff = 0;
 			}
+			countGoodSteps++;
 		} else {
 			bool doBadStep = (rand() % CUTOFF_US) > (duration + CUTOFF_US/2);
 			if (doBadStep) {
@@ -171,7 +173,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		countLoops++;
 	}
 
-	cerr << "loops: " << countLoops << "\tbad steps: " << countBadSteps << "\tresets: " << countResets << endl;
+	cerr << "loops: " << countLoops << "\tgood steps: " << countGoodSteps <<  "\tbad steps: " << countBadSteps << "\tresets: " << countResets << endl;
 	cerr << "Path dist: " << bestPathDist << endl;
 
 	return bestPath;
