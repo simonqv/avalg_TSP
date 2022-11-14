@@ -84,6 +84,7 @@ vector<vector<float>> euclideanDistance(vector<point> points) {
 
 vector<int> greedyPath(vector<vector<float>> distMatrix) {
 	vector<int> path = vector<int>();
+	path.reserve(distMatrix.size());
 	path.push_back(0);
 
 	while (path.size() < distMatrix.size())  {
@@ -150,7 +151,7 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 
 			if (diff < 0) {
 				bestPath = path;
-				bestPathDist = calcPathDist(path, dist);
+				bestPathDist += diff;
 				diff = 0;
 			}
 			countGoodSteps++;
