@@ -1,7 +1,7 @@
 CXX=g++
-CFLAGS=-Wall -g -O2 -std=gnu++17
+CFLAGS=-Wall -g -O2 -std=gnu++17 -pg
 
-.PHONY: test clean val
+.PHONY: test clean val prof
 
 SRC_FILES=$(wildcard *.cpp)
 HEAD_FILES=$(wildcard *.hpp)
@@ -15,6 +15,11 @@ val: tsp
 
 test: tsp
 	time ./tsp < test2.in 1> /dev/null
+
+prof: tsp
+	cp ./tsp ./a.out
+	./a.out < test2.in
+	gprof
 
 # Run
 run: tsp
