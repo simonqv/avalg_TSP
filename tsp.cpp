@@ -25,7 +25,7 @@ void printPath(vector<int> path) {
 void printPathLen(vector<int> path, vector<vector<float>> distMatrix) {
 	float l = distMatrix[path.back()][path.front()];
 	for (size_t i=0; i < path.size()-1; i++) {
-		l += distMatrix[path.at(i)][path[i+1]];
+		l += distMatrix[path[i]][path[i+1]];
 	}
 	cout << "path len: " << l << endl;
 }
@@ -70,7 +70,7 @@ vector<vector<float>> euclideanDistance(vector<point> points) {
 
 	for (int a = 0; a < n; a++) {
 		for (int b = a+1; b < n; b++) {
-			float dist = round(pow(points[a].x - points[b].x, 2) + pow(points[a].y - points[b].y, 2));
+			float dist = round(sqrt(pow(points[a].x - points[b].x, 2) + pow(points[a].y - points[b].y, 2)));
 			out[a][b] = dist;
 			out[b][a] = dist;
 		}
