@@ -5,6 +5,7 @@
 #include <limits>
 #include <algorithm>
 #include <chrono>
+#include <cstring>
 
 #define RANDOM_SEED 0
 #define CUTOFF_US 1980000
@@ -22,12 +23,18 @@ void printPath(vector<int> path) {
 		cout << p << endl;
 }
 
-void printPathLen(vector<int> path, vector<vector<float>> distMatrix) {
+void printDebugPath(vector<int> path) {
+	for (auto i : path)
+		cerr << i << " ";
+	cerr << endl;
+}
+
+void printDebugPathLen(vector<int> path, vector<vector<float>> distMatrix) {
 	float l = distMatrix[path.back()][path.front()];
 	for (size_t i=0; i < path.size()-1; i++) {
-		l += distMatrix[path[i]][path[i+1]];
+		l += distMatrix[path.at(i)][path[i+1]];
 	}
-	cout << "path len: " << l << endl;
+	cerr << "path len: " << l << endl;
 }
 
 float calcPathDist(const vector<int>& path, const vector<vector<float>>& distMatrix) {
@@ -110,19 +117,22 @@ inline void do2opt(int a, int b, vector<int>& path) {
 	reverse(path.begin()+m1+1, path.begin()+m2+1);
 }
 
+inline void do3opt(int a, int b, int c, vector<int>& path) {
+	vector<int> t = {a, b, c};
+	sort(t.begin(), t.end());
+	int i = t[0];
+	int j = t[1];
+	int k = t[2];
+	auto tour = path;
+	memcpy(path.data()+i+1, tour.data()+j+1, (k-j)*sizeof(int));
+	memcpy(path.data()+i+(k-j)+1, tour.data()+i+1, (j-i)*sizeof(int));
+}
+
 vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
 	srand(RANDOM_SEED); // Seed the random number generator
 	auto start = high_resolution_clock::now();
 	int duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
 	int pathLen = path.size();
-	auto bestPath = path;
-	float bestPathDist = calcPathDist(path, dist);
-	float diff = 0;
-
-	long unsigned int countLoops = 0;
-	long unsigned int countResets = 0;
-	long unsigned int countGoodSteps = 0;
-	long unsigned int countBadSteps = 0;
 
 	while (duration < CUTOFF_US) {
 		// First edge
@@ -131,53 +141,43 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
         // Second edge
 		int b = rand() % pathLen;
 		int bn = (b+1) % pathLen;
+        // Third edge
+		int c = rand() % pathLen;
+		int cn = (c+1) % pathLen;
+
         // Nodes of edges
 		int a1 = path[a];
 		int a2 = path[an];
 		int b1 = path[b];
 		int b2 = path[bn];
+		int c1 = path[c];
+		int c2 = path[cn];
 
-		float aDist = dist[a1][a2];
-		float bDist = dist[b1][b2];
-		float swDist1 = dist[a1][b1];
-		float swDist2 = dist[a2][b2];
+		// d0 = distance(A, B) + distance(C, D) + distance(E, F)
+		float orgDist = dist[a1][a2] + dist[b1][b2] + dist[c1][c2];
+    	// d1 = distance(A, C) + distance(B, D) + distance(E, F)
+		float sw1Dist = dist[a1][b1] + dist[a2][b2] + dist[c1][c2];
+    	// d4 = distance(F, B) + distance(C, D) + distance(E, A)
+		float sw2Dist = dist[a2][c2] + dist[b1][b2] + dist[a1][c1];
+    	// d2 = distance(A, B) + distance(C, E) + distance(D, F)
+		float sw3Dist = dist[a1][a2] + dist[b1][c1] + dist[b2][c2];
+    	// d3 = distance(A, D) + distance(E, B) + distance(C, F)
+		float sw4Dist = dist[a1][b2] + dist[a2][c1] + dist[b1][c2];
 
-		float orgDist = aDist + bDist;
-		float swDist = swDist1 + swDist2;
-
-		if (orgDist > swDist) {
+		if (orgDist > sw1Dist) {
 			do2opt(a, b, path);
-			diff -= orgDist - swDist;
-
-			if (diff < 0) {
-				bestPath = path;
-				bestPathDist += diff;
-				diff = 0;
-			}
-			countGoodSteps++;
-		} else {
-			bool doBadStep = (rand() % CUTOFF_US) > (duration + CUTOFF_US/2);
-			if (doBadStep && (a != b)) {
-				do2opt(a, b, path);
-				diff -= orgDist - swDist;
-				countBadSteps++;
-			}
-			// Reset if very bad
-			if (diff > 0.2*bestPathDist) {
-				path = bestPath;
-				diff = 0;
-				countResets++;
-			}
+		} else if (orgDist > sw2Dist) {
+			do2opt(a, c, path);
+		} else if (orgDist > sw3Dist) {
+			do2opt(b, c, path);
+		} else if (orgDist > sw4Dist) {
+			do3opt(a, b, c, path);
 		}
 
 		duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
-		countLoops++;
 	}
 
-	cerr << "loops: " << countLoops << "\tgood steps: " << countGoodSteps <<  "\tbad steps: " << countBadSteps << "\tresets: " << countResets << endl;
-	cerr << "Path dist: " << bestPathDist << endl;
-
-	return bestPath;
+	return path;
 }
 
 // TODO: there are may optimizations posible
@@ -188,7 +188,8 @@ vector<int> solve(vector<point> points) {
 	// printPathLen(path, distMatrix);
 	path = simAnnealing2opt(path, distMatrix);
 	// printPath(path);
-	// printPathLen(path, distMatrix);
+	// printPathLen(
+	printDebugPathLen(path, distMatrix);
 	return path;
 }
 
@@ -198,3 +199,4 @@ int main() {
 	printPath(path);
 	return 0;
 }
+
