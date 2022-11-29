@@ -117,22 +117,29 @@ inline void do2opt(int a, int b, vector<int>& path) {
 	reverse(path.begin()+m1+1, path.begin()+m2+1);
 }
 
-inline void do3opt(int a, int b, int c, vector<int>& path) {
-	vector<int> t = {a, b, c};
-	sort(t.begin(), t.end());
-	int i = t[0];
-	int j = t[1];
-	int k = t[2];
-	auto tour = path;
-	memcpy(path.data()+i+1, tour.data()+j+1, (k-j)*sizeof(int));
-	memcpy(path.data()+i+(k-j)+1, tour.data()+i+1, (j-i)*sizeof(int));
+inline void dod2opt(int a, int b, vector<int>& path) {
+	int m1 = a < b ? a : b;
+	int m2 = a >= b ? a : b;
+	reverse(path.begin()+m1+1, path.begin()+m2+1);
+	reverse(path.begin(), path.end());
+	// a'bc -> c'b'a == ac'b'
 }
 
-vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist) {
+inline void do3opt(int a, int b, int c, vector<int>& path) {
+	do2opt(a, b, path);
+	do2opt(b, c, path);
+	do2opt(a, c, path);
+}
+
+vector<int> simAnnealing(vector<int> path, const vector<vector<float>> dist) {
 	srand(RANDOM_SEED); // Seed the random number generator
 	auto start = high_resolution_clock::now();
 	int duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
 	int pathLen = path.size();
+	auto bestPath = path;
+    float bestPathDist = calcPathDist(path, dist);
+    float diff = 0;
+	vector<float> cases = vector<float>(8);
 
 	while (duration < CUTOFF_US) {
 		// First edge
@@ -153,31 +160,105 @@ vector<int> simAnnealing2opt(vector<int> path, const vector<vector<float>> dist)
 		int c1 = path[c];
 		int c2 = path[cn];
 
+		// org
 		// d0 = distance(A, B) + distance(C, D) + distance(E, F)
-		float orgDist = dist[a1][a2] + dist[b1][b2] + dist[c1][c2];
-    	// d1 = distance(A, C) + distance(B, D) + distance(E, F)
-		float sw1Dist = dist[a1][b1] + dist[a2][b2] + dist[c1][c2];
-    	// d4 = distance(F, B) + distance(C, D) + distance(E, A)
-		float sw2Dist = dist[a2][c2] + dist[b1][b2] + dist[a1][c1];
-    	// d2 = distance(A, B) + distance(C, E) + distance(D, F)
-		float sw3Dist = dist[a1][a2] + dist[b1][c1] + dist[b2][c2];
-    	// d3 = distance(A, D) + distance(E, B) + distance(C, F)
-		float sw4Dist = dist[a1][b2] + dist[a2][c1] + dist[b1][c2];
+		cases[0] = dist[a1][a2] + dist[b1][b2] + dist[c1][c2];
 
-		if (orgDist > sw1Dist) {
-			do2opt(a, b, path);
-		} else if (orgDist > sw2Dist) {
-			do2opt(a, c, path);
-		} else if (orgDist > sw3Dist) {
-			do2opt(b, c, path);
-		} else if (orgDist > sw4Dist) {
-			do3opt(a, b, c, path);
+		// 2opt
+    	// d1 = distance(A, C) + distance(B, D) + distance(E, F)
+		// sw a b
+		cases[1] = dist[a1][b1] + dist[a2][b2] + dist[c1][c2];
+    	// d4 = distance(F, B) + distance(C, D) + distance(E, A)
+		// sw a c
+		cases[2] = dist[a2][c2] + dist[b1][b2] + dist[a1][c1];
+    	// d2 = distance(A, B) + distance(C, E) + distance(D, F)
+		// sw b c
+		cases[3] = dist[a1][a2] + dist[b1][c1] + dist[b2][c2];
+
+		// 2opt 2opt
+		// sw a b -> ...
+		cases[4] = dist[a1][b1] + dist[c1][a2] + dist[b2][c2];
+		// sw a c -> ...
+		cases[5] = dist[a1][c1] + dist[b1][c2] + dist[a2][b2];
+		// sw b c -> ...
+		cases[6] = dist[b1][c1] + dist[a1][b2] + dist[c2][a2];
+
+		// 3opt
+    	// d3 = distance(A, D) + distance(E, B) + distance(C, F)
+		cases[7] = dist[a1][b2] + dist[a2][c1] + dist[b1][c2];
+
+		auto result = min_element(cases.begin(), cases.end());
+		int index = distance(cases.begin(), result);
+
+		diff -= cases[0] - cases[index];
+		switch (index) {
+			case 1:
+				do2opt(a, b, path);
+				break;
+			case 2:
+				do2opt(a, c, path);
+				break;
+			case 3:
+				do2opt(b, c, path);
+				break;
+			case 4:
+				dod2opt(a, b, path);
+				break;
+			case 5:
+				dod2opt(a, c, path);
+				break;
+			case 6:
+				dod2opt(b, c, path);
+				break;
+			case 7:
+				do3opt(a, b, c, path);
+				break;
+			default:
+				bool doBadStep = (rand() % CUTOFF_US) > (duration + CUTOFF_US/2);
+				if (doBadStep) {
+					auto result = min_element(cases.begin()+1, cases.end());
+					int index = distance(cases.begin(), result);
+					switch (index) {
+						case 1:
+							do2opt(a, b, path);
+							break;
+						case 2:
+							do2opt(a, c, path);
+							break;
+						case 3:
+							do2opt(b, c, path);
+							break;
+						case 4:
+							dod2opt(a, b, path);
+							break;
+						case 5:
+							dod2opt(a, c, path);
+							break;
+						case 6:
+							dod2opt(b, c, path);
+							break;
+						case 7:
+							do3opt(a, b, c, path);
+							break;
+					}
+					diff -= cases[0] - cases[index];
+				}
+				// Reset if very bad
+				if (diff > 0.2*bestPathDist) {
+					path = bestPath;
+					diff = 0;
+				}
+		}
+		if (diff < 0) {
+			bestPath = path;
+			bestPathDist += diff;
+			diff = 0;
 		}
 
 		duration = duration_cast<microseconds>(high_resolution_clock::now() - start).count();
 	}
 
-	return path;
+	return bestPath;
 }
 
 // TODO: there are may optimizations posible
@@ -186,7 +267,7 @@ vector<int> solve(vector<point> points) {
 	auto path = greedyPath(distMatrix);
 	// printPath(path);
 	// printPathLen(path, distMatrix);
-	path = simAnnealing2opt(path, distMatrix);
+	path = simAnnealing(path, distMatrix);
 	// printPath(path);
 	// printPathLen(
 	printDebugPathLen(path, distMatrix);
